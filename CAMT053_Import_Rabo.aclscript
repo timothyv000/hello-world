@@ -1,0 +1,84 @@
+COMMENT
+********************************************************
+ Script Name:  CAMT.053_Import_Rabo
+ Description:  Importscript op basis van een CAMT.053 RABO voorbeeldbestand
+ Output:       None
+ Written By:   Timothy Vissers
+ Modified By:  
+ Version:      1.0
+********************************************************
+
+
+COMMENT
+********************************************************
+   Set system environment
+********************************************************
+
+SET SESSION "CAMT053_Import_Rabo"
+SET SAFETY OFF
+CLOSE PRIMARY SECONDARY
+
+
+COMMENT
+********************************************************
+   Parameters
+********************************************************
+
+COMM - Algemene variabelen
+ASSIGN v_InputDir            = "..\01_Input"
+ASSIGN v_Filename            = "Rabobank Voorbeeldbestand CAMT053_RCM"
+ASSIGN v_Bank                = "RABO"
+
+COMM - Variabelen voor importtabellen
+ASSIGN v_Header              = "CAMT053_Header%v_Bank%"
+ASSIGN v_GroupHeader         = "CAMT053_GroupHeader%v_Bank%"
+ASSIGN v_Statement           = "CAMT053_Statement%v_Bank%"
+ASSIGN v_Statement_Details   = "CAMT053_Statement_Details%v_Bank%"
+
+COMM - ACL folder waar de tabellen moeten komen
+SET FOLDER TO /A1_Source_Data/A0_Input
+ 
+COMMENT
+********************************************************
+   Transaction Filter
+********************************************************
+
+
+
+
+COMMENT
+********************************************************
+   Main Logic
+********************************************************
+
+COMM - Rabobank bestand gebruikt
+
+IMPORT XML TO %v_Header% "%v_Header%.fil" FROM "%v_InputDir%\%v_Filename%.xml" FIELD "xmlns_xsi" C AT 1 DEC 0 WID 41 PIC "" AS "" RULE "/Document/@xmlns:xsi/text()" FIELD "xmlns" C AT 42 DEC 0 WID 46 PIC "" AS "" RULE "/Document/@xmlns/text()" 
+
+
+IMPORT XML TO %v_GroupHeader% "%v_GroupHeader%.fil" FROM "%v_InputDir%\%v_Filename%.xml" FIELD "MsgId" C AT 1 DEC 0 WID 22 PIC "" AS "" RULE "/Document/BkToCstmrStmt/GrpHdr/MsgId/text()" FIELD "CreDtTm" C AT 23 DEC 0 WID 32 PIC "" AS "" RULE "/Document/BkToCstmrStmt/GrpHdr/CreDtTm/text()" 
+
+
+IMPORT XML TO %v_Statement% "%v_Statement%.fil" FROM "%v_InputDir%\%v_Filename%.xml" FIELD "Id" C AT 1 DEC 0 WID 24 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Id/text()" FIELD "ElctrncSeqNb" C AT 25 DEC 0 WID 5 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/ElctrncSeqNb/text()" FIELD "CreDtTm" C AT 30 DEC 0 WID 32 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/CreDtTm/text()" FIELD "IBAN" C AT 62 DEC 0 WID 18 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Acct/Id/IBAN/text()" FIELD "Ccy" C AT 80 DEC 0 WID 3 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Acct/Ccy/text()" FIELD "Cd" C AT 83 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Bal/Tp/CdOrPrtry/Cd/text()" FIELD "Amt" N AT 87 DEC 2 WID 8 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Bal/Amt/text()" FIELD "Ccy1" C AT 95 DEC 0 WID 3 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Bal/Amt/@Ccy/text()" FIELD "CdtDbtInd" C AT 98 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Bal/CdtDbtInd/text()" FIELD "Dt" D AT 102 DEC 0 WID 10 PIC "YYYY-MM-DD" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Bal/Dt/Dt/text()" FIELD "NbOfNtries" N AT 112 DEC 0 WID 2 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlNtries/NbOfNtries/text()" FIELD "Sum" N AT 114 DEC 2 WID 8 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlNtries/Sum/text()" FIELD "TtlNetNtryAmt" N AT 122 DEC 2 WID 7 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlNtries/TtlNetNtryAmt/text()" FIELD "CdtDbtInd1" C AT 129 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlNtries/CdtDbtInd/text()" FIELD "NbOfNtries1" N AT 133 DEC 0 WID 1 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlCdtNtries/NbOfNtries/text()" FIELD "Sum1" N AT 134 DEC 2 WID 8 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlCdtNtries/Sum/text()" FIELD "NbOfNtries2" N AT 142 DEC 0 WID 2 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlDbtNtries/NbOfNtries/text()" FIELD "Sum2" N AT 144 DEC 2 WID 8 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/TxsSummry/TtlDbtNtries/Sum/text()" 
+
+
+IMPORT XML TO %v_Statement_Details% "%v_Statement_Details%.fil" FROM "%v_InputDir%\%v_Filename%.xml" FIELD "Id" C AT 1 DEC 0 WID 24 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Id/text()" FIELD "ElctrncSeqNb" C AT 25 DEC 0 WID 5 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/ElctrncSeqNb/text()" FIELD "CreDtTm" C AT 30 DEC 0 WID 32 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/CreDtTm/text()" FIELD "IBAN" C AT 62 DEC 0 WID 18 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Acct/Id/IBAN/text()" FIELD "Ccy" C AT 80 DEC 0 WID 3 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Acct/Ccy/text()" FIELD "Amt" N AT 83 DEC 2 WID 8 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/Amt/text()" FIELD "Ccy1" C AT 91 DEC 0 WID 3 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/Amt/@Ccy/text()" FIELD "CdtDbtInd" C AT 94 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/CdtDbtInd/text()" FIELD "RvslInd" C AT 98 DEC 0 WID 5 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/RvslInd/text()" FIELD "Sts" C AT 103 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/Sts/text()" FIELD "Dt" D AT 107 DEC 0 WID 10 PIC "YYYY-MM-DD" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/BookgDt/Dt/text()" FIELD "Dt1" D AT 117 DEC 0 WID 10 PIC "YYYY-MM-DD" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/ValDt/Dt/text()" FIELD "Cd" C AT 127 DEC 0 WID 3 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/BkTxCd/Prtry/Cd/text()" FIELD "Cd1" C AT 130 DEC 0 WID 3 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/BkTxCd/Prtry/Cd/text()" FIELD "Nm" C AT 133 DEC 0 WID 48 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/Dbtr/Nm/text()" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/Cdtr/Nm/text()" FIELD "AdrTp" C AT 181 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/Dbtr/PstlAdr/AdrTp/text()" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/Cdtr/PstlAdr/AdrTp/text()" FIELD "Ctry" C AT 185 DEC 0 WID 2 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/Dbtr/PstlAdr/Ctry/text()" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/Cdtr/PstlAdr/Ctry/text()" FIELD "IBAN1" C AT 187 DEC 0 WID 22 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/IBAN/text()" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/IBAN/text()" FIELD "Id1" C AT 209 DEC 0 WID 10 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/DbtrAcct/Id/Othr/Id/text()" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdPties/CdtrAcct/Id/Othr/Id/text()" FIELD "BIC" C AT 219 DEC 0 WID 8 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdAgts/DbtrAgt/FinInstnId/BIC/text()" FIELD "BIC1" C AT 227 DEC 0 WID 11 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RltdAgts/CdtrAgt/FinInstnId/BIC/text()" FIELD "Ustrd" C AT 238 DEC 0 WID 140 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RmtInf/Ustrd/text()" FIELD "Cd2" C AT 378 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RmtInf/Strd/CdtrRefInf/Tp/CdOrPrtry/Cd/text()" FIELD "Issr" C AT 382 DEC 0 WID 3 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RmtInf/Strd/CdtrRefInf/Tp/Issr/text()" FIELD "Ref" C AT 385 DEC 0 WID 16 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RmtInf/Strd/CdtrRefInf/Ref/text()" FIELD "EndToEndId" C AT 401 DEC 0 WID 33 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/Refs/EndToEndId/text()" FIELD "MndtId" C AT 434 DEC 0 WID 15 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/Refs/MndtId/text()" FIELD "Cd3" C AT 449 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RtrInf/Rsn/Cd/text()" FIELD "AddtlInf" C AT 453 DEC 0 WID 18 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/RtrInf/AddtlInf/text()" FIELD "Cd4" C AT 471 DEC 0 WID 4 PIC "" AS "" RULE "/Document/BkToCstmrStmt/Stmt/Ntry/NtryDtls/TxDtls/Purp/Cd/text()" 
+
+   SAVE LAYOUT TABLE TO %v_Statement_Details%_TableLayout
+
+
+COMMENT
+********************************************************
+   Reporting
+********************************************************
+
+
+
+COMMENT
+********************************************************
+   Cleanup 
+********************************************************
+
+CLOSE PRIMARY SECONDARY
+SET SESSION
+SET SAFETY ON
